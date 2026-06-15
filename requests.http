@@ -1,0 +1,29 @@
+### Health check (già funzionante)
+GET http://localhost:3000/api/health
+
+### Lab 1 · Parte A — Lista prodotti
+GET http://localhost:3000/api/products
+
+### Lab 1 · Parte B — Lista con paginazione
+GET http://localhost:3000/api/products?page=1&limit=2
+
+### Lab 1 · Parte B — page non valido (atteso 400 dopo la validazione)
+GET http://localhost:3000/api/products?page=-1
+
+### Lab 1 · Parte C — Crea prodotto (atteso 201)
+POST http://localhost:3000/api/products
+Content-Type: application/json
+
+{
+  "name": "USB-C Cable",
+  "price": 12.99,
+  "category": "electronics"
+}
+
+### Lab 1 · Parte C — Body non valido (atteso 400)
+POST http://localhost:3000/api/products
+Content-Type: application/json
+
+{
+  "price": "non-un-numero"
+}

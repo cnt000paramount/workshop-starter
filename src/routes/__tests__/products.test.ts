@@ -71,7 +71,7 @@ describe("Products routes", () => {
   describe("POST /api/products", () => {
     it("creates a product with category and returns 201", async () => {
       const payload = {
-        name: "Nuovo prodotto",
+        name: "USB-C Cable",
         price: 19.99,
         category: "tech",
       };
@@ -92,7 +92,7 @@ describe("Products routes", () => {
 
     it("creates a product without category and returns 201", async () => {
       const payload = {
-        name: "Prodotto senza categoria",
+        name: "Notebook A5",
         price: 9.5,
       };
 
@@ -109,7 +109,7 @@ describe("Products routes", () => {
 
     it("returns 400 when validation fails (negative price)", async () => {
       const payload = {
-        name: "Prodotto non valido",
+        name: "Invalid Product",
         price: -10,
       };
 
@@ -144,7 +144,7 @@ describe("Products routes", () => {
       });
 
       const payload = {
-        name: "Prodotto valido",
+        name: "Valid Product",
         price: 10,
       };
 

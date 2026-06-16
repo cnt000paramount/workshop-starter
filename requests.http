@@ -1,16 +1,13 @@
-### Health check (già funzionante)
+### Health check
 GET http://localhost:3000/api/health
 
-### Lab 1 · Parte A — Lista prodotti
-GET http://localhost:3000/api/products
-
-### Lab 1 · Parte B — Lista con paginazione
+### Products - list with pagination
 GET http://localhost:3000/api/products?page=1&limit=2
 
-### Lab 1 · Parte B — page non valido (atteso 400 dopo la validazione)
-GET http://localhost:3000/api/products?page=-1
+### Products - invalid page (expected 400)
+GET http://localhost:3000/api/products?page=-1&limit=2
 
-### Lab 1 · Parte C — Crea prodotto (atteso 201)
+### Products - create (expected 201)
 POST http://localhost:3000/api/products
 Content-Type: application/json
 
@@ -20,10 +17,44 @@ Content-Type: application/json
   "category": "electronics"
 }
 
-### Lab 1 · Parte C — Body non valido (atteso 400)
+### Products - invalid body (expected 400)
 POST http://localhost:3000/api/products
 Content-Type: application/json
 
 {
-  "price": "non-un-numero"
+  "price": "not-a-number"
+}
+
+### Orders - list with pagination
+GET http://localhost:3000/api/orders?page=1&limit=2
+
+### Orders - invalid limit (expected 400)
+GET http://localhost:3000/api/orders?page=1
+
+### Orders - create with status (expected 201)
+POST http://localhost:3000/api/orders
+Content-Type: application/json
+
+{
+  "customerName": "Emma Wilson",
+  "total": 79.99,
+  "status": "paid"
+}
+
+### Orders - create without status (expected 201)
+POST http://localhost:3000/api/orders
+Content-Type: application/json
+
+{
+  "customerName": "Noah Brown",
+  "total": 24.5
+}
+
+### Orders - invalid body (expected 400)
+POST http://localhost:3000/api/orders
+Content-Type: application/json
+
+{
+  "customerName": "Invalid Order",
+  "total": -1
 }

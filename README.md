@@ -37,11 +37,15 @@ workshop-starter/
 ├── src/
 │   ├── index.ts                 Bootstrap: starts the server on port 3000
 │   ├── app.ts                   Creates/configures the Express app (testable)
+│   ├── types/order.ts           Order model (+ NewOrder)
 │   ├── types/product.ts         Product model (+ NewProduct)
+│   ├── data/orders.ts           In-memory orders store with sample data
 │   ├── data/products.ts         In-memory store with sample data
 │   ├── routes/
 │   │   ├── health.ts            ✅ GET /api/health — reference example
+│   │   ├── orders.ts            ✅ GET /api/orders and POST /api/orders
 │   │   ├── products.ts          ⬅️ TO COMPLETE in Lab 1 (GET + POST)
+│   │   ├── __tests__/orders.test.ts   Orders route tests
 │   │   └── __tests__/health.test.ts   Sample test (template for Lab 2)
 │   └── middleware/errorHandler.ts     ⚠️ contains an intentional bug (Lab 1 · C)
 ├── requests.http                Ready-to-run requests (REST Client)
@@ -66,11 +70,11 @@ workshop-starter/
 ### Description
 
 This project is an **Express + TypeScript** starter API for workshop exercises.
-It exposes a health endpoint and a products API with:
+It exposes a health endpoint, a products API, and an orders API with:
 
 - pagination via query params (`page`, `limit`)
 - payload validation with **Zod**
-- in-memory product storage
+- in-memory storage for products and orders
 
 ### Quick Start
 
@@ -163,6 +167,62 @@ Expected error response:
     }
   ]
 }
+```
+
+#### 4) List orders (paginated)
+
+**GET** `/api/orders?page=<number>&limit=<number>`
+
+Valid request:
+
+```bash
+curl -X GET "http://localhost:3000/api/orders?page=1&limit=2"
+```
+
+Validation error example (missing limit):
+
+```bash
+curl -X GET "http://localhost:3000/api/orders?page=1"
+```
+
+Expected error response:
+
+```json
+{ "error": "Invalid limit parameter (max 100)" }
+```
+
+#### 5) Create order
+
+**POST** `/api/orders`
+
+With status:
+
+```bash
+curl -X POST http://localhost:3000/api/orders \
+  -H "Content-Type: application/json" \
+  -d '{"customerName":"Emma Wilson","total":79.99,"status":"paid"}'
+```
+
+Without status:
+
+```bash
+curl -X POST http://localhost:3000/api/orders \
+  -H "Content-Type: application/json" \
+  -d '{"customerName":"Noah Brown","total":24.5}'
+```
+
+Validation error example (negative total):
+
+```bash
+curl -X POST http://localhost:3000/api/orders \
+  -H "Content-Type: application/json" \
+  -d '{"customerName":"Invalid Order","total":-1}'
+```
+
+Expected error response:
+
+```json
+{ "error": "Validation failed" }
 ```
 
 ### Run Tests

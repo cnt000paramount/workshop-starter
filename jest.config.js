@@ -1,10 +1,10 @@
 /** @type {import('jest').Config} */
 module.exports = {
-  testEnvironment: 'node',
-  roots: ['<rootDir>/src'],
+  testEnvironment: "node",
+  roots: ["<rootDir>/src"],
   transform: {
-    // diagnostics:false -> ts-jest traspila senza bloccare sull'errore
-    // intenzionale di errorHandler.ts (che resta visibile in VS Code per /fix)
-    '^.+\\.tsx?$': ['ts-jest', { diagnostics: false }],
+    // diagnostics:false -> ts-jest transpiles without blocking on the intentional
+    // error in errorHandler.ts (which remains visible in VS Code for /fix)
+    "^.+\\.tsx?$": ["ts-jest", { diagnostics: false }],
   },
 };

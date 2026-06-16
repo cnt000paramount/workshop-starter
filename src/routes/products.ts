@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { z } from "zod";
 import { products, getNextId } from "../data/products";
-import { Product, NewProduct } from "../types/product";
+import { Product } from "../types/product";
 
 const router = Router();
 
@@ -11,6 +11,25 @@ const CreateProductSchema = z.object({
   price: z.number().positive("Price must be a positive number"),
   category: z.string().optional(),
 });
+
+function createHttpError(
+  message: string,
+  status: number,
+  details?: unknown,
+): Error & { status: number; details?: unknown } {
+  const error = new Error(message) as Error & {
+    status: number;
+    details?: unknown;
+  };
+
+  error.status = status;
+
+  if (details !== undefined) {
+    error.details = details;
+  }
+
+  return error;
+}
 
 /**
  * GET /
@@ -24,19 +43,20 @@ const CreateProductSchema = z.object({
  * - 200: paginated products array
  * - 400: invalid page/limit parameters
  */
-router.get("/", async (req, res) => {
+router.get("/", async (req, res, next) => {
   const pageParam = req.query.page as string;
   const limitParam = req.query.limit as string;
 
-  const page = parseInt(pageParam);
-  const limit = parseInt(limitParam);
+  const page = parseInt(pageParam, 10);
+  const limit = parseInt(limitParam, 10);
 
   // Validation
-  if (!pageParam || isNaN(page) || page < 1) {
-    return res.status(400).json({ error: "Invalid page parameter" });
+  if (!pageParam || Number.isNaN(page) || page < 1) {
+    return next(createHttpError("Invalid page parameter", 400));
   }
-  if (!limitParam || isNaN(limit) || limit < 1 || limit > 100) {
-    return res.status(400).json({ error: "Invalid limit parameter (max 100)" });
+
+  if (!limitParam || Number.isNaN(limit) || limit < 1 || limit > 100) {
+    return next(createHttpError("Invalid limit parameter (max 100)", 400));
   }
 
   const startIndex = (page - 1) * limit;
@@ -59,7 +79,7 @@ router.get("/", async (req, res) => {
  * - 400: validation failed (invalid request body)
  * - 500: unexpected internal error
  */
-router.post("/", async (req, res) => {
+router.post("/", async (req, res, next) => {
   try {
     // Validate request body
     const validatedData = CreateProductSchema.parse(req.body);
@@ -80,14 +100,11 @@ router.post("/", async (req, res) => {
   } catch (error) {
     // Handle validation errors
     if (error instanceof z.ZodError) {
-      return res.status(400).json({
-        error: "Validation failed",
-        details: error.errors,
-      });
+      return next(createHttpError("Validation failed", 400, error.errors));
     }
 
     // Generic internal error
-    res.status(500).json({ error: "Internal server error" });
+    return next(createHttpError("Internal server error", 500));
   }
 });
 

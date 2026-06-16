@@ -14,5 +14,15 @@
         "statusBar.debuggingForeground": "#FEFBFF",
         "statusBar.noFolderBackground": "#125108",
         "statusBar.noFolderForeground": "#FEFBFF"
+    },
+    "chat.tools.terminal.autoApprove": {
+        "/^npx jest src/routes/__tests__/products\\.test\\.ts --runInBand > products-jest\\.log 2>&1; ret=\\$\\?; tail -n 30 products-jest\\.log; exit \\$ret$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^npx jest --runInBand --silent --noStackTrace > final-jest\\.log 2>&1; ret=\\$\\?; tail -n 20 final-jest\\.log; exit \\$ret$/": {
+            "approve": true,
+            "matchCommandLine": true
+        }
     }
 }

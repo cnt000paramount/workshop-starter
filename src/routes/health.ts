@@ -1,11 +1,11 @@
-import { Router } from 'express';
+import { Router } from "express";
 
 const router = Router();
 
-// ✅ Endpoint di ESEMPIO, già implementato.
-// Usalo come riferimento di stile mentre completi products.ts nel Lab 1.
-router.get('/', (_req, res) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+// ✅ Sample endpoint, already implemented.
+// Use it as a style reference while completing products.ts in Lab 1.
+router.get("/", (_req, res) => {
+  res.json({ status: "ok", timestamp: new Date().toISOString() });
 });
 
 export default router;

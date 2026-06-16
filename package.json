@@ -1,7 +1,7 @@
 {
   "name": "workshop-starter",
   "version": "1.0.0",
-  "description": "Starter Express/TypeScript per il Workshop AI per Sviluppatori — Modulo 2 (Lab 1-4)",
+  "description": "Starter Express/TypeScript for the AI for Developers Workshop — Module 2 (Lab 1-4)",
   "license": "MIT",
   "scripts": {
     "dev": "tsx watch src/index.ts",

@@ -1,24 +1,17 @@
 import { Router } from "express";
 import { z } from "zod";
-import { getNextOrderId, orders } from "../data/orders";
-import { NewOrder, Order } from "../types/order";
+import { getNextId, orders } from "../data/orders";
+import { Order } from "../types/order";
+import { createHttpError } from "../utils/httpError";
+import { isPaginationError, parsePaginationParams } from "../utils/pagination";
 
 const router = Router();
 
-const createOrderSchema = z.object({
+const CreateOrderSchema = z.object({
   customerName: z.string().min(1, "Customer name is required"),
   total: z.number().positive("Total must be a positive number"),
-  status: z.string().optional(),
+  status: z.enum(["pending", "paid", "shipped", "cancelled"]).optional(),
 });
-
-function createHttpError(
-  message: string,
-  status: number,
-): Error & { status: number } {
-  const error = new Error(message) as Error & { status: number };
-  error.status = status;
-  return error;
-}
 
 /**
  * GET /
@@ -33,23 +26,14 @@ function createHttpError(
  * - 400: invalid page/limit parameters
  */
 router.get("/", async (req, res, next) => {
-  const pageParam = req.query.page as string;
-  const limitParam = req.query.limit as string;
-
-  const page = parseInt(pageParam, 10);
-  const limit = parseInt(limitParam, 10);
-
-  if (!pageParam || Number.isNaN(page) || page < 1) {
-    return next(createHttpError("Invalid page parameter", 400));
+  const pagination = parsePaginationParams(req.query);
+  if (isPaginationError(pagination)) {
+    return next(createHttpError(pagination.error, pagination.status));
   }
 
-  if (!limitParam || Number.isNaN(limit) || limit < 1 || limit > 100) {
-    return next(createHttpError("Invalid limit parameter (max 100)", 400));
-  }
-
+  const { page, limit } = pagination;
   const startIndex = (page - 1) * limit;
-  const endIndex = startIndex + limit;
-  const paginatedOrders = orders.slice(startIndex, endIndex);
+  const paginatedOrders = orders.slice(startIndex, startIndex + limit);
 
   res.json(paginatedOrders);
 });
@@ -70,17 +54,13 @@ router.get("/", async (req, res, next) => {
  */
 router.post("/", async (req, res, next) => {
   try {
-    const validatedData = createOrderSchema.parse(req.body);
+    const validatedData = CreateOrderSchema.parse(req.body);
 
-    const newOrderData: NewOrder = {
+    const newOrder: Order = {
+      id: getNextId(),
       customerName: validatedData.customerName,
       total: validatedData.total,
       ...(validatedData.status && { status: validatedData.status }),
-    };
-
-    const newOrder: Order = {
-      id: getNextOrderId(),
-      ...newOrderData,
     };
 
     orders.push(newOrder);

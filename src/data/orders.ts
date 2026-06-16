@@ -7,6 +7,6 @@ export const orders: Order[] = [
   { id: 4, customerName: "Liam Carter", total: 19.99, status: "pending" },
 ];
 
-export function getNextOrderId(): number {
+export function getNextId(): number {
   return orders.length ? Math.max(...orders.map((order) => order.id)) + 1 : 1;
 }

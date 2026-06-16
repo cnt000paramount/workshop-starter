@@ -1,8 +1,8 @@
 import { z } from "zod";
 import { ordersRepository } from "../repositories/ordersRepository";
 import { NewOrder, Order } from "../types/order";
-import { createHttpError } from "../lib/httpError";
 import { Pagination, paginate } from "../lib/pagination";
+import { validateBody } from "../lib/validateBody";
 
 const createOrderSchema = z.object({
   customerName: z.string().min(1, "Customer name is required"),
@@ -21,15 +21,7 @@ export const ordersService = {
   },
 
   create(body: unknown): Order {
-    let validatedData: z.infer<typeof createOrderSchema>;
-    try {
-      validatedData = createOrderSchema.parse(body);
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        throw createHttpError("Validation failed", 400);
-      }
-      throw error;
-    }
+    const validatedData = validateBody(createOrderSchema, body);
 
     const newOrderData: NewOrder = {
       customerName: validatedData.customerName,

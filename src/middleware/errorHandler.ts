@@ -1,7 +1,8 @@
 import { Request, Response, NextFunction } from "express";
+import { HttpError } from "../lib/httpError";
 
 export function errorHandler(
-  err: Error & { status?: number; details?: unknown },
+  err: Error & Partial<HttpError>,
   _req: Request,
   res: Response,
   _next: NextFunction,
@@ -13,5 +14,5 @@ export function errorHandler(
     ...(err.details !== undefined && { details: err.details }),
   };
 
-  res.status(err.status || 500).json(errorResponse);
+  res.status(err.status ?? 500).json(errorResponse);
 }

@@ -1,17 +1,9 @@
 import { Router } from "express";
-import { z } from "zod";
-import { getNextOrderId, orders } from "../data/orders";
-import { NewOrder, Order } from "../types/order";
-import { createHttpError } from "../lib/httpError";
-import { paginate, parsePagination } from "../lib/pagination";
+import { ordersService } from "../services/ordersService";
+import { createHttpError, HttpError } from "../lib/httpError";
+import { parsePagination } from "../lib/pagination";
 
 const router = Router();
-
-const createOrderSchema = z.object({
-  customerName: z.string().min(1, "Customer name is required"),
-  total: z.number().positive("Total must be a positive number"),
-  status: z.string().optional(),
-});
 
 /**
  * GET /
@@ -28,7 +20,7 @@ const createOrderSchema = z.object({
 router.get("/", async (req, res, next) => {
   try {
     const pagination = parsePagination(req);
-    res.json(paginate(orders, pagination));
+    res.json(ordersService.list(pagination));
   } catch (error) {
     next(error);
   }
@@ -50,26 +42,14 @@ router.get("/", async (req, res, next) => {
  */
 router.post("/", async (req, res, next) => {
   try {
-    const validatedData = createOrderSchema.parse(req.body);
-
-    const newOrderData: NewOrder = {
-      customerName: validatedData.customerName,
-      total: validatedData.total,
-      ...(validatedData.status && { status: validatedData.status }),
-    };
-
-    const newOrder: Order = {
-      id: getNextOrderId(),
-      ...newOrderData,
-    };
-
-    orders.push(newOrder);
+    const newOrder = ordersService.create(req.body);
     res.status(201).json(newOrder);
   } catch (error) {
-    if (error instanceof z.ZodError) {
-      return next(createHttpError("Validation failed", 400));
+    // Known client errors (e.g. validation) carry an HTTP status; forward them.
+    if (error instanceof HttpError) {
+      return next(error);
     }
-
+    // Anything else is unexpected -> generic 500.
     return next(createHttpError("Internal server error", 500));
   }
 });

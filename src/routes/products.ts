@@ -1,18 +1,9 @@
 import { Router } from "express";
-import { z } from "zod";
-import { products, getNextId } from "../data/products";
-import { Product } from "../types/product";
-import { createHttpError } from "../lib/httpError";
-import { paginate, parsePagination } from "../lib/pagination";
+import { productsService } from "../services/productsService";
+import { createHttpError, HttpError } from "../lib/httpError";
+import { parsePagination } from "../lib/pagination";
 
 const router = Router();
-
-// Validation schema for POST request body
-const CreateProductSchema = z.object({
-  name: z.string().min(1, "Name is required"),
-  price: z.number().positive("Price must be a positive number"),
-  category: z.string().optional(),
-});
 
 /**
  * GET /
@@ -29,7 +20,7 @@ const CreateProductSchema = z.object({
 router.get("/", async (req, res, next) => {
   try {
     const pagination = parsePagination(req);
-    res.json(paginate(products, pagination));
+    res.json(productsService.list(pagination));
   } catch (error) {
     next(error);
   }
@@ -51,29 +42,14 @@ router.get("/", async (req, res, next) => {
  */
 router.post("/", async (req, res, next) => {
   try {
-    // Validate request body
-    const validatedData = CreateProductSchema.parse(req.body);
-
-    // Create new product with generated id
-    const newProduct: Product = {
-      id: getNextId(),
-      name: validatedData.name,
-      price: validatedData.price,
-      ...(validatedData.category && { category: validatedData.category }),
-    };
-
-    // Add product to in-memory array
-    products.push(newProduct);
-
-    // Return 201 with created product
+    const newProduct = productsService.create(req.body);
     res.status(201).json(newProduct);
   } catch (error) {
-    // Handle validation errors
-    if (error instanceof z.ZodError) {
-      return next(createHttpError("Validation failed", 400, error.errors));
+    // Known client errors (e.g. validation) carry an HTTP status; forward them.
+    if (error instanceof HttpError) {
+      return next(error);
     }
-
-    // Generic internal error
+    // Anything else is unexpected -> generic 500.
     return next(createHttpError("Internal server error", 500));
   }
 });

@@ -2,6 +2,8 @@ import { Router } from "express";
 import { z } from "zod";
 import { products, getNextId } from "../data/products";
 import { Product } from "../types/product";
+import { createHttpError } from "../lib/httpError";
+import { paginate, parsePagination } from "../lib/pagination";
 
 const router = Router();
 
@@ -11,25 +13,6 @@ const CreateProductSchema = z.object({
   price: z.number().positive("Price must be a positive number"),
   category: z.string().optional(),
 });
-
-function createHttpError(
-  message: string,
-  status: number,
-  details?: unknown,
-): Error & { status: number; details?: unknown } {
-  const error = new Error(message) as Error & {
-    status: number;
-    details?: unknown;
-  };
-
-  error.status = status;
-
-  if (details !== undefined) {
-    error.details = details;
-  }
-
-  return error;
-}
 
 /**
  * GET /
@@ -44,25 +27,12 @@ function createHttpError(
  * - 400: invalid page/limit parameters
  */
 router.get("/", async (req, res, next) => {
-  const pageParam = req.query.page as string;
-  const limitParam = req.query.limit as string;
-
-  const page = parseInt(pageParam, 10);
-  const limit = parseInt(limitParam, 10);
-
-  // Validation
-  if (!pageParam || Number.isNaN(page) || page < 1) {
-    return next(createHttpError("Invalid page parameter", 400));
+  try {
+    const pagination = parsePagination(req);
+    res.json(paginate(products, pagination));
+  } catch (error) {
+    next(error);
   }
-
-  if (!limitParam || Number.isNaN(limit) || limit < 1 || limit > 100) {
-    return next(createHttpError("Invalid limit parameter (max 100)", 400));
-  }
-
-  const startIndex = (page - 1) * limit;
-  const endIndex = startIndex + limit;
-  const paginatedProducts = products.slice(startIndex, endIndex);
-  res.json(paginatedProducts);
 });
 
 /**
